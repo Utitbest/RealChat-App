@@ -893,3 +893,10 @@ div :is(div .times){
     top: .1em;
     font-size: 70px;
 }
+.user-status.online {
+    color: green;
+}
+
+.user-status.offline {
+    color: gray;
+}

@@ -49,26 +49,9 @@ const maximum = 7;
 
 
 // Update the UI for user active/inactive status
-function updateUserUI(userId, isActive) {
-    const userElement = document.querySelector(`.individualchat[data-user-id="${userId}"]`);
-    if (!userElement) {
-        console.warn(`No DOM element found for userId: ${userId}`);
-        return; // Skip updating the UI if the element is not found
-    }
-    console.log(userId)
-    if (userElement) {
-        const statusElement = userElement.querySelector(".user-status");
-        if(!statusElement){
-            console.warn(`No were to be found`)
-            return;
-        }
-        statusElement.textContent = isActive ? "Online" : "Offline"; // Update the status display
-        statusElement.className = `user-status ${isActive ? "online" : "offline"}`; // Add CSS classes
-    }
-}
+
 
 // Call this function when your app initializes
-listenForUserStatusUpdates();
 
 
 function Settings(){
@@ -175,59 +158,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        const userId = user.uid;
-
-        // Set the user to active when they load the page
-        updateUserStatus(userId, true);
-
-        // Set the user to inactive when the page is closed or inactive
-        window.addEventListener("beforeunload", () => {
-            updateUserStatus(userId, false);
-        });
-
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") {
-                updateUserStatus(userId, false);
-            } else {
-                updateUserStatus(userId, true);
-            }
-        });
-    }
-});
-
-async function updateUserStatus(userId, isActive) {
-    const userRef = doc(firebaseService.db, "users", userId); // Reference to the user's document
-    try {
-        await updateDoc(userRef, {
-            isActive: isActive, // true for active, false for inactive
-            lastActive: serverTimestamp(), // Update timestamp
-        });
-        console.log(`User status updated to ${isActive ? "online" : "offline"}`);
-    } catch (error) {
-        console.error("Error updating user status:", error);
-    }
-}
-
-function listenForUserStatusUpdates() {
-    const usersRef = collection(firebaseService.db, "users"); // Reference to the users collection
-
-    // Listen for changes in the users' collection
-    onSnapshot(usersRef, (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-            const userId = change.doc.id;
-            const userData = change.doc.data();
-
-            if (change.type === "modified") {
-                // Check if the isActive status changed
-                if (userData.isActive !== undefined) {
-                    updateUserUI(userId, userData.isActive); // Update the UI with the active status
-                }
-            }
-        });
-    });
-}
 
 function updateprofilepic(){
      inputtag = document.querySelector('.nothings')
@@ -241,13 +171,6 @@ function updateprofilepic(){
         if (!profilePictureFile) {
             throw new Error("No file selected.");
         }
-
-        // const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/jfif"];
-        // if (!allowedTypes.includes(profilePictureFile.type)) {
-        //     alert("Invalid file type. Please select a valid image.");
-        //     fileInput.value = ""; // Reset the input
-        //     return;
-        // }
 
         const currentUserId = firebaseService.getCurrentUserId(); // Ensure this function exists
         const storageRef = getStorage(firebaseApp); // Replace firebaseApp with your Firebase app instance
@@ -296,8 +219,8 @@ async function loadAllUsers() {
                 userElement.setAttribute('data-user-id', user.id)
                 userElement.innerHTML = `
                     <div style="display: flex; width: 100%; height: 100%; align-items: center;">
-                        <div style="display: flex; align-items: center; justify-content: center; width: 20%; height: 100%; position: relative;">
-                        <span class="" style="position: absolute; top:11px; left:5px; border-radius:50%; background:green; width:7px; height:7px;"></span>
+                        <div style="display: flex; align-items: center; justify-content: center; width: 20%; height: 100%; position: relative;" class="allactaive">
+                        <span class="user-status" style="position: absolute; top:11px; left:5px; border-radius:50%; width:7px; height:7px;"></span>
                             <figure>
                                 <img src="./Super icons/manssincon.png" alt="">
                             </figure>
@@ -338,6 +261,81 @@ async function loadAllUsers() {
     }
 }
 
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        const userId = user.uid;
+
+        // Set the user to active when they load the page
+        updateUserStatus(userId, true);
+
+        // Set the user to inactive when the page is closed or inactive
+        window.addEventListener("beforeunload", () => {
+            updateUserStatus(userId, false);
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+                updateUserStatus(userId, false);
+            } else {
+                updateUserStatus(userId, true);
+            }
+        });
+    }
+});
+
+async function updateUserStatus(userId, isActive) {
+    const userRef = doc(firebaseService.db, "users", userId); // Reference to the user's document
+    try {
+        await updateDoc(userRef, {
+            isActive: isActive, // true for active, false for inactive
+            lastActive: serverTimestamp(), // Update timestamp
+        });
+        console.log(`User status updated to ${isActive ? "online" : "offline"}`);
+    } catch (error) {
+        console.error("Error updating user status:", error);
+    }
+}
+
+function listenForUserStatusUpdates() {
+    const usersRef = collection(firebaseService.db, "users"); // Reference to the users collection
+
+    // Listen for changes in the users' collection
+    onSnapshot(usersRef, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            const userId = change.doc.id;
+            const userData = change.doc.data();
+            console.log(userId)
+            if (change.type === "modified") {
+                // Check if the isActive status changed
+                if (userData.isActive !== undefined) {
+                    updateUserUI(userId, userData.isActive); // Update the UI with the active status
+                }
+            }
+        });
+    });
+}
+
+function updateUserUI(userId, isActive) {
+    const userElement = document.querySelector(`.individualchat[data-user-id="${userId}"]`);
+    if (!userElement) {
+        console.warn(`No DOM element found for userId: ${userId}`);
+        return; // Skip updating the UI if the element is not found
+    }
+    console.log(userId)
+    if (userElement) {
+        const statusElement = userElement.querySelector(".allactaive span");
+        if(!statusElement){
+            console.warn(`No were to be found`)
+            return;
+        }
+        statusElement.textContent = isActive ? "Online" : "Offline"; // Update the status display
+        statusElement.className = `user-status ${isActive ? "online" : "offline"}`; // Add CSS classes
+        alert(statusElement.className)
+    }
+}
+
+listenForUserStatusUpdates();
 
 async function fetchAndDisplayLastMessages() {
     try {
