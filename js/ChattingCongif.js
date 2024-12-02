@@ -103,9 +103,17 @@ function listenForUserStatusUpdates() {
 // Update the UI for user active/inactive status
 function updateUserUI(userId, isActive) {
     const userElement = document.querySelector(`.individualchat[data-user-id="${userId}"]`);
+    if (!userElement) {
+        console.warn(`No DOM element found for userId: ${userId}`);
+        return; // Skip updating the UI if the element is not found
+    }
     console.log(userId)
     if (userElement) {
         const statusElement = userElement.querySelector(".user-status");
+        if(!statusElement){
+            console.warn(`No were to be found`)
+            return;
+        }
         statusElement.textContent = isActive ? "Online" : "Offline"; // Update the status display
         statusElement.className = `user-status ${isActive ? "online" : "offline"}`; // Add CSS classes
     }
