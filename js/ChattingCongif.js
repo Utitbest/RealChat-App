@@ -2,7 +2,8 @@ import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/fi
 import FirebaseService from './FireBaseConfig.js';
 import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-storage.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js";
-
+import { getFirestore, collection, addDoc, doc, getDoc, getDocs, updateDoc, deleteDoc, setDoc, onSnapshot, where, 
+    serverTimestamp, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyB6tpiYpOYmh9z2LCzWClPhC4IJCWgBaMc",
@@ -42,9 +43,79 @@ var Chatterinfordisply = document.querySelector('.chattername h3')
 var profile = document.querySelector('.informs img')
 var inputtag = document.querySelector('.nothings')
 const maximum = 7;
-function Settings(){
-    
 
+
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        const userId = user.uid;
+
+        // Set the user to active when they load the page
+        updateUserStatus(userId, true);
+
+        // Set the user to inactive when the page is closed or inactive
+        window.addEventListener("beforeunload", () => {
+            updateUserStatus(userId, false);
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+                updateUserStatus(userId, false);
+            } else {
+                updateUserStatus(userId, true);
+            }
+        });
+    }
+});
+
+async function updateUserStatus(userId, isActive) {
+    const userRef = doc(firebaseService.db, "users", userId); // Reference to the user's document
+    try {
+        await updateDoc(userRef, {
+            isActive: isActive, // true for active, false for inactive
+            lastActive: serverTimestamp(), // Update timestamp
+        });
+        console.log(`User status updated to ${isActive ? "online" : "offline"}`);
+    } catch (error) {
+        console.error("Error updating user status:", error);
+    }
+}
+
+function listenForUserStatusUpdates() {
+    const usersRef = collection(firebaseService.db, "users"); // Reference to the users collection
+
+    // Listen for changes in the users' collection
+    onSnapshot(usersRef, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            const userId = change.doc.id;
+            const userData = change.doc.data();
+
+            if (change.type === "modified") {
+                // Check if the isActive status changed
+                if (userData.isActive !== undefined) {
+                    updateUserUI(userId, userData.isActive); // Update the UI with the active status
+                }
+            }
+        });
+    });
+}
+
+// Update the UI for user active/inactive status
+function updateUserUI(userId, isActive) {
+    const userElement = document.querySelector(`.individualchat[data-user-id="${userId}"]`);
+    console.log(userId)
+    if (userElement) {
+        const statusElement = userElement.querySelector(".user-status");
+        statusElement.textContent = isActive ? "Online" : "Offline"; // Update the status display
+        statusElement.className = `user-status ${isActive ? "online" : "offline"}`; // Add CSS classes
+    }
+}
+
+// Call this function when your app initializes
+listenForUserStatusUpdates();
+
+
+function Settings(){
     settings[1].addEventListener('click', function(){
         containerRpy.innerHTML = `
             <div class="Chat">
@@ -208,7 +279,7 @@ async function loadAllUsers() {
             return
         }
         users.forEach((user) => {
-            if(user.id !== currentUserId){  // Exclude current user from the chat list
+            if(user.id !== currentUserId){  
                 const userElement = document.createElement("div");
                 userElement.className = 'individualchat';
                 userElement.setAttribute('data-user-id', user.id)
@@ -415,6 +486,14 @@ async function initializeChat(chatId, otherUserId) {
         }
 });
     
+
+
+
+
+
+
+
+
 
 function HideSettings(){
     iconsdem[2].addEventListener('click', function(){

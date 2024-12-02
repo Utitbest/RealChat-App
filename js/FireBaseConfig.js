@@ -25,6 +25,8 @@ export default class FirebaseService {
     }).showToast();
   }
 
+  
+
   async uploadProfilePicture(file, userId) {
     try {
         const storageRef = firebase.storage().ref(`profile_pictures/${userId}`);
@@ -37,7 +39,7 @@ export default class FirebaseService {
     }
 }
 
-getCurrentUserId() {
+async getCurrentUserId() {
   const user = this.auth.currentUser;
   if (user) {
       return user.uid;
@@ -45,8 +47,6 @@ getCurrentUserId() {
       throw new Error("No user is currently logged in.");
   }
 }
-
-
 
   async createDocument(collectionName, data) {
     try {
