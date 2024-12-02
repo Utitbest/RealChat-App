@@ -46,59 +46,7 @@ const maximum = 7;
 
 
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        const userId = user.uid;
 
-        // Set the user to active when they load the page
-        updateUserStatus(userId, true);
-
-        // Set the user to inactive when the page is closed or inactive
-        window.addEventListener("beforeunload", () => {
-            updateUserStatus(userId, false);
-        });
-
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") {
-                updateUserStatus(userId, false);
-            } else {
-                updateUserStatus(userId, true);
-            }
-        });
-    }
-});
-
-async function updateUserStatus(userId, isActive) {
-    const userRef = doc(firebaseService.db, "users", userId); // Reference to the user's document
-    try {
-        await updateDoc(userRef, {
-            isActive: isActive, // true for active, false for inactive
-            lastActive: serverTimestamp(), // Update timestamp
-        });
-        console.log(`User status updated to ${isActive ? "online" : "offline"}`);
-    } catch (error) {
-        console.error("Error updating user status:", error);
-    }
-}
-
-function listenForUserStatusUpdates() {
-    const usersRef = collection(firebaseService.db, "users"); // Reference to the users collection
-
-    // Listen for changes in the users' collection
-    onSnapshot(usersRef, (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-            const userId = change.doc.id;
-            const userData = change.doc.data();
-
-            if (change.type === "modified") {
-                // Check if the isActive status changed
-                if (userData.isActive !== undefined) {
-                    updateUserUI(userId, userData.isActive); // Update the UI with the active status
-                }
-            }
-        });
-    });
-}
 
 // Update the UI for user active/inactive status
 function updateUserUI(userId, isActive) {
@@ -226,6 +174,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        const userId = user.uid;
+
+        // Set the user to active when they load the page
+        updateUserStatus(userId, true);
+
+        // Set the user to inactive when the page is closed or inactive
+        window.addEventListener("beforeunload", () => {
+            updateUserStatus(userId, false);
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+                updateUserStatus(userId, false);
+            } else {
+                updateUserStatus(userId, true);
+            }
+        });
+    }
+});
+
+async function updateUserStatus(userId, isActive) {
+    const userRef = doc(firebaseService.db, "users", userId); // Reference to the user's document
+    try {
+        await updateDoc(userRef, {
+            isActive: isActive, // true for active, false for inactive
+            lastActive: serverTimestamp(), // Update timestamp
+        });
+        console.log(`User status updated to ${isActive ? "online" : "offline"}`);
+    } catch (error) {
+        console.error("Error updating user status:", error);
+    }
+}
+
+function listenForUserStatusUpdates() {
+    const usersRef = collection(firebaseService.db, "users"); // Reference to the users collection
+
+    // Listen for changes in the users' collection
+    onSnapshot(usersRef, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            const userId = change.doc.id;
+            const userData = change.doc.data();
+
+            if (change.type === "modified") {
+                // Check if the isActive status changed
+                if (userData.isActive !== undefined) {
+                    updateUserUI(userId, userData.isActive); // Update the UI with the active status
+                }
+            }
+        });
+    });
+}
+
 function updateprofilepic(){
      inputtag = document.querySelector('.nothings')
      inputtag.addEventListener("change", async(event) =>{
@@ -293,7 +296,8 @@ async function loadAllUsers() {
                 userElement.setAttribute('data-user-id', user.id)
                 userElement.innerHTML = `
                     <div style="display: flex; width: 100%; height: 100%; align-items: center;">
-                        <div style="display: flex; align-items: center; justify-content: center; width: 20%; height: 100%;">
+                        <div style="display: flex; align-items: center; justify-content: center; width: 20%; height: 100%; position: relative;">
+                        <span class="" style="position: absolute; top:11px; left:5px; border-radius:50%; background:green; width:7px; height:7px;"></span>
                             <figure>
                                 <img src="./Super icons/manssincon.png" alt="">
                             </figure>
