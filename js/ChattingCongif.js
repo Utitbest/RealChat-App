@@ -47,13 +47,6 @@ const maximum = 7;
 
 
 
-
-// Update the UI for user active/inactive status
-
-
-// Call this function when your app initializes
-
-
 function Settings(){
     settings[1].addEventListener('click', function(){
         containerRpy.innerHTML = `
