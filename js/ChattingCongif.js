@@ -58,6 +58,8 @@ function Settings(){
         `;
     })
 
+
+    
     settings[2].addEventListener('click', function(){
         containerRpy.innerHTML = `
             <div class="vid_voce">
